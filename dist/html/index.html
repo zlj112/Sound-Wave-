@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="background:#0f0c29;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoundWave</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+background-color:#0f0c29;
+background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%);
+color:#fff;font-family:'Segoe UI',-apple-system,sans-serif;min-height:100vh;padding:20px;
+}
+.header{text-align:center;padding:30px 0 20px;position:relative}
+.logo{
+font-size:42px;font-weight:800;
+background:linear-gradient(90deg,#00d4ff,#7b2ff7,#f107a3);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px;
+}
+.tagline{color:#a0a0c0;margin-top:8px;font-size:14px}
+.search-bar{max-width:500px;margin:25px auto;position:relative}
+.search-bar input{
+width:100%;padding:14px 20px 14px 48px;border:1px solid rgba(255,255,255,0.15);
+border-radius:30px;background:rgba(255,255,255,0.08);color:#fff;font-size:15px;outline:none;transition:all 0.3s;
+}
+.search-bar input:focus{border-color:#00d4ff;background:rgba(255,255,255,0.12);box-shadow:0 0 20px rgba(0,212,255,0.2)}
+.search-bar input::placeholder{color:#8080a0}
+.search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:#8080a0;font-size:18px}
+.import-bar{max-width:700px;margin:0 auto 10px;display:flex;align-items:center;gap:12px}
+.import-btn{
+padding:10px 20px;border:1px solid rgba(0,212,255,0.5);border-radius:24px;
+background:rgba(0,212,255,0.1);color:#00d4ff;font-size:14px;cursor:pointer;
+transition:all 0.25s;display:flex;align-items:center;gap:8px;
+}
+.import-btn:hover{background:rgba(0,212,255,0.2);box-shadow:0 0 16px rgba(0,212,255,0.3)}
+.import-btn:disabled{opacity:0.5;cursor:not-allowed}
+.import-hint{color:#707090;font-size:12px}
+.section-title{max-width:700px;margin:30px auto 15px;font-size:18px;font-weight:600;color:#c0c0e0;padding-left:8px}
+.track-list{max-width:700px;margin:0 auto}
+.track-item{
+display:flex;align-items:center;padding:14px 18px;margin-bottom:10px;
+background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+border-radius:14px;cursor:pointer;transition:all 0.25s;
+}
+.track-item:hover{background:rgba(255,255,255,0.1);border-color:rgba(0,212,255,0.4);transform:translateX(4px)}
+.track-cover{
+width:52px;height:52px;border-radius:10px;
+background:linear-gradient(135deg,#00d4ff,#7b2ff7);
+display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden;
+}
+.track-cover img{width:100%;height:100%;object-fit:cover;display:block;border-radius:10px}
+.track-info{flex:1;margin-left:16px;min-width:0}
+.track-title{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track-artist{font-size:13px;color:#a0a0c0;margin-top:3px}
+.track-duration{color:#8080a0;font-size:13px;flex-shrink:0;margin-left:12px}
+.play-btn{
+width:38px;height:38px;border-radius:50%;
+background:linear-gradient(135deg,#00d4ff,#7b2ff7);
+display:flex;align-items:center;justify-content:center;margin-left:14px;flex-shrink:0;opacity:0;transition:opacity 0.25s;
+}
+.track-item:hover .play-btn{opacity:1}
+.play-btn::after{content:'';width:0;height:0;border-left:10px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent;margin-left:3px}
+.delete-btn{
+width:32px;height:32px;border-radius:50%;background:rgba(255,80,80,0.15);
+border:1px solid rgba(255,80,80,0.3);color:#ff6b6b;cursor:pointer;
+display:flex;align-items:center;justify-content:center;font-size:14px;margin-left:8px;flex-shrink:0;opacity:0;transition:all 0.25s;
+}
+.track-item:hover .delete-btn{opacity:1}
+.delete-btn:hover{background:rgba(255,80,80,0.3);transform:scale(1.1)}
+.edit-btn{
+width:32px;height:32px;border-radius:50%;background:rgba(0,212,255,0.15);
+border:1px solid rgba(0,212,255,0.3);color:#00d4ff;cursor:pointer;
+display:flex;align-items:center;justify-content:center;font-size:14px;margin-left:8px;flex-shrink:0;opacity:0;transition:all 0.25s;
+}
+.track-item:hover .edit-btn{opacity:1}
+.edit-btn:hover{background:rgba(0,212,255,0.3);transform:scale(1.1)}
+.save-btn{
+width:32px;height:32px;border-radius:50%;background:rgba(0,200,100,0.2);
+border:1px solid rgba(0,200,100,0.4);color:#00c864;cursor:pointer;
+display:flex;align-items:center;justify-content:center;font-size:14px;margin-left:6px;flex-shrink:0;
+}
+.save-btn:hover{background:rgba(0,200,100,0.4)}
+.cancel-btn{
+width:32px;height:32px;border-radius:50%;background:rgba(255,80,80,0.15);
+border:1px solid rgba(255,80,80,0.3);color:#ff6b6b;cursor:pointer;
+display:flex;align-items:center;justify-content:center;font-size:14px;margin-left:6px;flex-shrink:0;
+}
+.cancel-btn:hover{background:rgba(255,80,80,0.3)}
+.edit-title-input{
+width:100%;padding:6px 10px;border:1px solid #00d4ff;border-radius:8px;
+background:rgba(0,0,0,0.3);color:#fff;font-size:15px;font-weight:600;outline:none;margin-bottom:6px;
+}
+.edit-artist-input{
+width:100%;padding:5px 10px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;
+background:rgba(0,0,0,0.3);color:#aaa;font-size:13px;outline:none;
+}
+.custom-badge{display:inline-block;padding:2px 8px;border-radius:8px;background:rgba(255,180,0,0.15);color:#ffb400;font-size:11px;margin-left:8px;vertical-align:middle}
+.empty-state{text-align:center;padding:60px 20px;color:#8080a0}
+.empty-state .icon{font-size:48px;margin-bottom:16px}
+.footer{text-align:center;padding:40px 0 20px;color:#606080;font-size:12px}
+.toast{
+position:fixed;top:20px;left:50%;transform:translateX(-50%);
+padding:12px 24px;border-radius:12px;font-size:14px;z-index:9999;
+opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:80%;text-align:center;
+}
+.toast.show{opacity:1}
+.toast.success{background:rgba(0,200,100,0.9);color:#fff}
+.toast.error{background:rgba(255,80,80,0.9);color:#fff}
+.toast.info{background:rgba(0,150,255,0.9);color:#fff}
+
+/* ===== 右上角昵称（本地、可选，点击改名）===== */
+.nickname-badge{position:absolute;top:15px;right:20px;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);padding:6px 14px 6px 8px;border-radius:25px;cursor:pointer;transition:all 0.25s;z-index:50;user-select:none;}
+.nickname-badge:hover{background:rgba(255,255,255,0.1);border-color:rgba(0,212,255,0.4);transform:translateY(-1px);}
+.nickname-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00d4ff,#7b2ff7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:#fff;position:relative;flex-shrink:0;text-transform:uppercase;}
+.nickname-avatar::after{content:'';position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;background:#4ade80;border-radius:50%;border:2px solid #16213e;}
+.nickname-text{font-size:13px;font-weight:600;color:#fff;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nickname-input{display:none;width:110px;background:rgba(0,0,0,0.35);border:1px solid #00d4ff;border-radius:8px;color:#fff;font-size:13px;padding:4px 8px;outline:none;box-sizing:border-box;}
+
+
+/* ===== 分类切换标签 ===== */
+.category-tabs{max-width:700px;margin:0 auto 15px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.category-tab{padding:8px 18px;border:1px solid rgba(255,255,255,0.15);border-radius:20px;background:rgba(255,255,255,0.05);color:#a0a0c0;font-size:13px;cursor:pointer;transition:all 0.25s;}
+.category-tab:hover{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.3);color:#00d4ff;}
+.category-tab.active{background:linear-gradient(135deg,#00d4ff,#7b2ff7);border-color:transparent;color:#fff;font-weight:600;box-shadow:0 2px 12px rgba(0,212,255,0.3);}
+
+/* ===== 最近播放区域 ===== */
+.recent-section{max-width:700px;margin:0 auto 20px;}
+.recent-section .track-item{background:rgba(0,212,255,0.05);border-color:rgba(0,212,255,0.15);}
+.recent-section .track-item:hover{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.3);}
+
+/* ===== 新增优化样式 ===== */
+.track-item.now-playing{border-color:#00d4ff;background:rgba(0,212,255,0.08);position:relative;}
+.track-item.now-playing::before{content:'';position:absolute;left:0;top:10%;bottom:10%;width:3px;background:linear-gradient(180deg,#00d4ff,#7b2ff7);border-radius:2px;animation:pulse-bar 1.5s ease-in-out infinite;}
+@keyframes pulse-bar{0%,100%{opacity:0.4;}50%{opacity:1;}}
+.track-item.now-playing .track-title{color:#00d4ff;}
+.import-progress{max-width:700px;margin:10px auto;padding:12px 18px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);border-radius:12px;font-size:13px;color:#00d4ff;display:none;}
+.import-progress.show{display:block;}
+.confirm-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.confirm-overlay.show{opacity:1;pointer-events:auto;}
+.confirm-box{background:#1a1635;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:28px;max-width:360px;width:90%;text-align:center;}
+.confirm-title{font-size:18px;font-weight:600;margin-bottom:10px;}
+.confirm-msg{font-size:14px;color:#a0a0c0;margin-bottom:18px;line-height:1.5;}
+.confirm-btns{display:flex;gap:12px;justify-content:center;}
+.confirm-ok{padding:10px 24px;border:none;border-radius:20px;background:linear-gradient(135deg,#ff6b6b,#ee5a5a);color:#fff;font-size:14px;cursor:pointer;}
+.confirm-cancel{padding:10px 24px;border:1px solid rgba(255,255,255,0.2);border-radius:20px;background:transparent;color:#c0c0e0;font-size:14px;cursor:pointer;}
+</style>
+</head>
+<body style="background-color:#0f0c29;">
+
+
+<div class="header">
+<div class="logo">SoundWave</div>
+<div class="tagline" data-i18n="HOME.TAGLINE">发现好音乐 · 游戏内在线播放</div>
+<div class="nickname-badge" id="nicknameBtn" data-i18n-title="HOME.NICKNAME_EDIT_TITLE" title="点击修改昵称">
+<span class="nickname-avatar" id="nicknameAvatar">H</span>
+<span class="nickname-text" id="nicknameText">Hacker</span>
+<input type="text" class="nickname-input" id="nicknameInput" maxlength="20" data-i18n-ph="HOME.NICKNAME_PH">
+</div>
+</div>
+
+<div class="search-bar">
+<span class="search-icon">&#128269;</span>
+<input type="text" id="searchInput" placeholder="搜索歌曲、歌手或专辑..." data-i18n-ph="HOME.SEARCH_PH">
+</div>
+
+<!-- 分类切换标签 -->
+<div class="category-tabs" id="categoryTabs">
+<button class="category-tab active" data-category="all" data-i18n="CATEGORY.ALL">全部</button>
+<button class="category-tab" data-category="electronic" data-i18n="CATEGORY.ELECTRONIC">电子</button>
+<button class="category-tab" data-category="hiphop" data-i18n="CATEGORY.HIPHOP">嘻哈</button>
+<button class="category-tab" data-category="game" data-i18n="CATEGORY.GAME">游戏原声</button>
+<button class="category-tab" data-category="chinese" data-i18n="CATEGORY.CHINESE">中文流行</button>
+<button class="category-tab" data-category="custom" data-i18n="CATEGORY.CUSTOM">我的音乐</button>
+</div>
+
+<div class="import-bar">
+<button class="import-btn" id="importBtn"><span>&#10133;</span><span data-i18n="HOME.IMPORT">导入我的音乐</span></button>
+<span class="import-hint" id="importHint" data-i18n="HOME.IMPORT_HINT">支持 MP3 / WAV / OGG / M4A，单首不超过 15MB</span>
+<input type="file" id="fileInput" accept="audio/*" style="display:none" multiple>
+</div>
+
+
+<!-- 导入进度提示 -->
+<div class="import-progress" id="importProgress" data-i18n="HOME.IMPORTING">正在导入音乐...</div>
+
+<!-- 删除歌曲确认弹窗 -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title" data-i18n="HOME.CONFIRM_DELETE_TITLE">确认删除</div>
+    <div class="confirm-msg" id="confirmMsg" data-i18n="HOME.CONFIRM_DELETE_MSG">确定要删除这首歌吗？</div>
+    <div class="confirm-btns">
+      <button class="confirm-ok" id="confirmOk" data-i18n="COMMON.DELETE">删除</button>
+      <button class="confirm-cancel" id="confirmCancel" data-i18n="COMMON.CANCEL">取消</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="toast" id="toast"></div>
+
+<!-- 最近播放区域 -->
+<div class="recent-section" id="recentSection" style="display:none;">
+<div class="section-title" data-i18n="HOME.RECENT">🕒 最近播放</div>
+<div class="track-list" id="recentList"></div>
+</div>
+
+<div class="section-title" id="sectionTitle" data-i18n="HOME.ALL_MUSIC">全部音乐</div>
+<div class="track-list" id="trackList">
+</div>
+<div class="footer" data-i18n="HOME.FOOTER">SoundWave Music &copy; 2026 · 仅供游戏内娱乐使用</div>
+
+<script>
+// ===== i18n helper（自动跟随游戏语言；外部浏览器直开走兜底表）=====
+var FALLBACK_ZH={
+"COMMON.SAVE":"保存","COMMON.CANCEL":"取消","COMMON.DELETE":"删除","COMMON.EDIT":"编辑","COMMON.MY":"我的","COMMON.UNKNOWN_ARTIST":"未知歌手","COMMON.UNKNOWN_ALBUM":"我的音乐",
+"CATEGORY.ALL":"全部","CATEGORY.ELECTRONIC":"电子","CATEGORY.HIPHOP":"嘻哈","CATEGORY.GAME":"游戏原声","CATEGORY.CHINESE":"中文流行","CATEGORY.CUSTOM":"我的音乐",
+"HOME.TAGLINE":"发现好音乐 · 游戏内在线播放","HOME.WELCOME_BACK":"欢迎回来","HOME.NICKNAME_PH":"输入你的昵称","HOME.NICKNAME_EDIT_TITLE":"点击修改昵称",
+"HOME.SEARCH_PH":"搜索歌曲、歌手或专辑...","HOME.IMPORT":"导入我的音乐","HOME.IMPORT_HINT":"支持 MP3 / WAV / OGG / M4A，单首不超过 15MB",
+"HOME.IMPORTING":"正在导入音乐...","HOME.IMPORTING_BTN":"导入中...","HOME.CONFIRM_DELETE_TITLE":"确认删除","HOME.CONFIRM_DELETE_MSG":"确定要删除这首歌吗？","HOME.CONFIRM_DELETE_NAMED":"确定要删除「{{title}}」吗？",
+"HOME.CONFIRM_DELETE_FALLBACK":"这首歌","HOME.RECENT":"🕒 最近播放","HOME.ALL_MUSIC":"全部音乐","HOME.SEARCH_RESULTS":"搜索结果",
+"HOME.FOOTER":"SoundWave Music © 2026 · 仅供游戏内娱乐使用","HOME.NO_TRACKS":"没有找到相关歌曲","HOME.LOAD_FAILED":"加载失败",
+"HOME.DELETE_SUCCESS":"已删除","HOME.DELETE_FAILED":"删除失败","HOME.IMPORT_SUCCESS":"成功导入 {{count}} 首","HOME.IMPORT_SUCCESS_MORE":"成功导入 {{count}} 首，{{fail}} 首失败",
+"HOME.IMPORT_UNAVAILABLE":"导入功能不可用","HOME.IMPORT_FAILED":"导入失败","HOME.READ_FAILED":"读取失败","HOME.FILE_TOO_BIG":"「{{name}}」超过大小限制",
+"HOME.NAV_FAILED":"导航失败","HOME.EDIT_TITLE_PH":"歌曲标题","HOME.EDIT_ARTIST_PH":"歌手名","HOME.EDIT_TITLE_EMPTY":"标题不能为空",
+"HOME.SAVED":"已保存","HOME.SAVE_FAILED":"保存失败","HOME.NICKNAME_EMPTY":"请输入昵称","HOME.NICKNAME_LONG":"昵称不能超过20个字符",
+"HOME.WELCOME_NEW":"欢迎加入 SoundWave，{{name}}！","HOME.NICKNAME_SAVE_FAILED":"保存失败，请重试","HOME.SEARCH_FAILED":"搜索失败",
+"HOME.IMPORT_HINT_DYNAMIC":"支持 MP3/WAV/OGG/M4A，单首≤{{size}}MB，最多{{max}}首（已导入{{cur}}首）",
+};
+var FALLBACK_EN={
+"COMMON.SAVE":"Save","COMMON.CANCEL":"Cancel","COMMON.DELETE":"Delete","COMMON.EDIT":"Edit","COMMON.MY":"Mine","COMMON.UNKNOWN_ARTIST":"Unknown Artist","COMMON.UNKNOWN_ALBUM":"My Music",
+"CATEGORY.ALL":"All","CATEGORY.ELECTRONIC":"Electronic","CATEGORY.HIPHOP":"Hip Hop","CATEGORY.GAME":"Game OST","CATEGORY.CHINESE":"C-Pop","CATEGORY.CUSTOM":"My Music",
+"HOME.TAGLINE":"Discover great music · In-game streaming","HOME.WELCOME_BACK":"Welcome back","HOME.NICKNAME_PH":"Enter your nickname","HOME.NICKNAME_EDIT_TITLE":"Click to change nickname",
+"HOME.SEARCH_PH":"Search songs, artists or albums...","HOME.IMPORT":"Import My Music","HOME.IMPORT_HINT":"MP3 / WAV / OGG / M4A supported, max 15MB each",
+"HOME.IMPORTING":"Importing music...","HOME.IMPORTING_BTN":"Importing...","HOME.CONFIRM_DELETE_TITLE":"Confirm Delete","HOME.CONFIRM_DELETE_MSG":"Delete this track?","HOME.CONFIRM_DELETE_NAMED":"Delete \"{{title}}\"?",
+"HOME.CONFIRM_DELETE_FALLBACK":"this track","HOME.RECENT":"🕒 Recently Played","HOME.ALL_MUSIC":"All Music","HOME.SEARCH_RESULTS":"Search Results",
+"HOME.FOOTER":"SoundWave Music © 2026 · For in-game entertainment only","HOME.NO_TRACKS":"No tracks found","HOME.LOAD_FAILED":"Failed to load",
+"HOME.DELETE_SUCCESS":"Deleted","HOME.DELETE_FAILED":"Delete failed","HOME.IMPORT_SUCCESS":"Imported {{count}} track(s)","HOME.IMPORT_SUCCESS_MORE":"Imported {{count}} track(s), {{fail}} failed",
+"HOME.IMPORT_UNAVAILABLE":"Import unavailable","HOME.IMPORT_FAILED":"Import failed","HOME.READ_FAILED":"Read failed","HOME.FILE_TOO_BIG":"\"{{name}}\" exceeds the size limit",
+"HOME.NAV_FAILED":"Navigation failed","HOME.EDIT_TITLE_PH":"Song title","HOME.EDIT_ARTIST_PH":"Artist name","HOME.EDIT_TITLE_EMPTY":"Title cannot be empty",
+"HOME.SAVED":"Saved","HOME.SAVE_FAILED":"Save failed","HOME.NICKNAME_EMPTY":"Please enter a nickname","HOME.NICKNAME_LONG":"Nickname must be 20 characters or less",
+"HOME.WELCOME_NEW":"Welcome to SoundWave, {{name}}!","HOME.NICKNAME_SAVE_FAILED":"Save failed, please try again","HOME.SEARCH_FAILED":"Search failed",
+"HOME.IMPORT_HINT_DYNAMIC":"MP3/WAV/OGG/M4A, ≤{{size}}MB each, max {{max}} tracks ({{cur}} imported)",
+};
+var FALLBACK_JA={
+"COMMON.SAVE":"保存","COMMON.CANCEL":"キャンセル","COMMON.DELETE":"削除","COMMON.EDIT":"編集","COMMON.MY":"マイ","COMMON.UNKNOWN_ARTIST":"不明なアーティスト","COMMON.UNKNOWN_ALBUM":"マイミュージック",
+"CATEGORY.ALL":"すべて","CATEGORY.ELECTRONIC":"エレクトロニック","CATEGORY.HIPHOP":"ヒップホップ","CATEGORY.GAME":"ゲームBGM","CATEGORY.CHINESE":"C-POP","CATEGORY.CUSTOM":"マイミュージック",
+"HOME.TAGLINE":"音楽を発見 · ゲーム内でストリーミング","HOME.WELCOME_BACK":"おかえりなさい","HOME.NICKNAME_PH":"ニックネームを入力","HOME.NICKNAME_EDIT_TITLE":"クリックしてニックネームを変更",
+"HOME.SEARCH_PH":"曲名、アーティスト、アルバムを検索...","HOME.IMPORT":"マイミュージックをインポート","HOME.IMPORT_HINT":"MP3 / WAV / OGG / M4A対応、1曲あたり15MB以下",
+"HOME.IMPORTING":"音楽をインポート中...","HOME.IMPORTING_BTN":"インポート中...","HOME.CONFIRM_DELETE_TITLE":"削除の確認","HOME.CONFIRM_DELETE_MSG":"この曲を削除しますか？","HOME.CONFIRM_DELETE_NAMED":"「{{title}}」を削除しますか？",
+"HOME.CONFIRM_DELETE_FALLBACK":"この曲","HOME.RECENT":"🕒 最近再生した曲","HOME.ALL_MUSIC":"すべての音楽","HOME.SEARCH_RESULTS":"検索結果",
+"HOME.FOOTER":"SoundWave Music © 2026 · ゲーム内の娯楽専用","HOME.NO_TRACKS":"曲が見つかりません","HOME.LOAD_FAILED":"読み込みに失敗しました",
+"HOME.DELETE_SUCCESS":"削除しました","HOME.DELETE_FAILED":"削除に失敗しました","HOME.IMPORT_SUCCESS":"{{count}}曲をインポートしました","HOME.IMPORT_SUCCESS_MORE":"{{count}}曲インポート、{{fail}}曲失敗",
+"HOME.IMPORT_UNAVAILABLE":"インポート機能は利用できません","HOME.IMPORT_FAILED":"インポートに失敗しました","HOME.READ_FAILED":"読み取りに失敗しました","HOME.FILE_TOO_BIG":"「{{name}}」はサイズ制限を超えています",
+"HOME.NAV_FAILED":"ナビゲーションに失敗しました","HOME.EDIT_TITLE_PH":"曲のタイトル","HOME.EDIT_ARTIST_PH":"アーティスト名","HOME.EDIT_TITLE_EMPTY":"タイトルは空にできません",
+"HOME.SAVED":"保存しました","HOME.SAVE_FAILED":"保存に失敗しました","HOME.NICKNAME_EMPTY":"ニックネームを入力してください","HOME.NICKNAME_LONG":"ニックネームは20文字以内",
+"HOME.WELCOME_NEW":"SoundWaveへようこそ、{{name}}さん！","HOME.NICKNAME_SAVE_FAILED":"保存に失敗しました。もう一度お試しください","HOME.SEARCH_FAILED":"検索に失敗しました",
+"HOME.IMPORT_HINT_DYNAMIC":"MP3/WAV/OGG/M4A、1曲{{size}}MB以下、最大{{max}}曲（{{cur}}曲インポート済み）",
+};
+function swBrowserLang(){try{if(typeof window.getLanguage==='function')return window.getLanguage();}catch(e){}try{return navigator.language||'zh-CN';}catch(e){return 'zh-CN';}}
+function swIsZh(l){l=(l||'').toLowerCase();return l.indexOf('zh')>=0||l.indexOf('chin')>=0||l.indexOf('hans')>=0||l.indexOf('hant')>=0||l==='cn'||l.indexOf('-cn')>=0;}
+function swIsJa(l){l=(l||'').toLowerCase();return l==='ja'||l.indexOf('ja-')===0||l==='jp'||l.indexOf('japan')>=0||l.indexOf('-jp')>=0;}
+function swFbTable(){var l=swBrowserLang();if(swIsZh(l))return FALLBACK_ZH;if(swIsJa(l))return FALLBACK_JA;return FALLBACK_EN;}
+function swReportLanguage(){try{var l=swBrowserLang();var lang=swIsZh(l)?"zh-CN":(swIsJa(l)?"ja":"en");if(window.HackhubSDK){if(HackhubSDK.Variables){try{HackhubSDK.Variables.set("sw_lang",lang);}catch(e){}}if(HackhubSDK.Events&&HackhubSDK.Events.emit){try{HackhubSDK.Events.emit("SoundWave.Lang",{lang:lang});}catch(e){}}}return lang;}catch(e){return null;}}
+try{swReportLanguage();if(window.addEventListener){window.addEventListener("load",function(){try{swReportLanguage();}catch(e){}setTimeout(function(){try{swReportLanguage();}catch(e){}},800);});}else{setTimeout(function(){try{swReportLanguage();}catch(e){}},800);}}catch(e){}
+function tt(key,vars){
+var s=null;try{if(typeof window.t==='function')s=window.t(key,vars);}catch(e){s=null;}
+if(!s||s===key){var tb=swFbTable();s=tb[key]||FALLBACK_EN[key]||FALLBACK_ZH[key]||key;}
+if(vars){for(var k in vars){s=s.split('{{'+k+'}}').join(String(vars[k]));}}
+return s;
+}
+function applyStaticI18n(){
+var i,els;
+els=document.querySelectorAll('[data-i18n]');for(i=0;i<els.length;i++){els[i].textContent=tt(els[i].getAttribute('data-i18n'));}
+els=document.querySelectorAll('[data-i18n-ph]');for(i=0;i<els.length;i++){els[i].setAttribute('placeholder',tt(els[i].getAttribute('data-i18n-ph')));}
+els=document.querySelectorAll('[data-i18n-title]');for(i=0;i<els.length;i++){els[i].setAttribute('title',tt(els[i].getAttribute('data-i18n-title')));}
+}
+applyStaticI18n();
+// ============================================
+// SoundWave 音乐站 - 首页逻辑
+// ============================================
+
+// ===== DOM 元素引用 =====
+var trackList=document.getElementById('trackList');
+var searchInput=document.getElementById('searchInput');
+var sectionTitle=document.getElementById('sectionTitle');
+var importBtn=document.getElementById('importBtn');
+var fileInput=document.getElementById('fileInput');
+var toastEl=document.getElementById('toast');
+var importHint=document.getElementById('importHint');
+var categoryTabs=document.getElementById('categoryTabs');
+var recentSection=document.getElementById('recentSection');
+var recentList=document.getElementById('recentList');
+var currentCategory='all';
+var MAX_HISTORY=20;
+var toastTimer=null;
+
+
+function showToast(msg,type){
+toastEl.textContent=msg;
+toastEl.className='toast show '+(type||'info');
+if(toastTimer)clearTimeout(toastTimer);
+toastTimer=setTimeout(function(){toastEl.className='toast';},3000);
+}
+
+// ===== 昵称（本地、可选；不注册、不登录、不强制）=====
+var NICKNAME_LS_KEY='soundwave_nickname';
+var NICKNAME_DEFAULT='Hacker';
+var nicknameBtn=document.getElementById('nicknameBtn');
+var nicknameAvatar=document.getElementById('nicknameAvatar');
+var nicknameText=document.getElementById('nicknameText');
+var nicknameInput=document.getElementById('nicknameInput');
+var nicknameEditing=false;
+function swNickGet(){
+try{if(typeof window.getNickname==='function'){var n=window.getNickname();if(n)return String(n);}}catch(e){}
+try{return localStorage.getItem(NICKNAME_LS_KEY)||'';}catch(e){return '';}
+}
+function swNickSave(name){
+var v=String(name==null?'':name).trim().slice(0,20);
+try{if(typeof window.setNickname==='function'){var r=window.setNickname(v);if(r&&r.success){try{localStorage.setItem(NICKNAME_LS_KEY,r.nickname||v);}catch(e){}return r.nickname||v;}return null;}}catch(e){}
+try{localStorage.setItem(NICKNAME_LS_KEY,v);}catch(e){}
+return v;
+}
+function swNickRender(name){
+var n=String(name||'').trim()||NICKNAME_DEFAULT;
+nicknameText.textContent=n;
+nicknameAvatar.textContent=(n.charAt(0)||'H').toUpperCase();
+}
+function swNickEdit(){
+if(nicknameEditing)return;nicknameEditing=true;
+nicknameText.style.display='none';
+nicknameInput.style.display='inline-block';
+nicknameInput.value=swNickGet();
+try{nicknameInput.focus();nicknameInput.select();}catch(e){}
+}
+function swNickDone(save){
+if(!nicknameEditing)return;nicknameEditing=false;
+nicknameInput.style.display='none';nicknameText.style.display='';
+if(save){
+var raw=nicknameInput.value;
+if(!raw.trim()){showToast(tt('HOME.NICKNAME_EMPTY'),'error');swNickRender(swNickGet());return;}
+if(Array.from(raw.trim()).length>20){showToast(tt('HOME.NICKNAME_LONG'),'error');swNickRender(swNickGet());return;}
+var prev=swNickGet();
+var saved=swNickSave(raw);
+if(saved===null){showToast(tt('HOME.NICKNAME_SAVE_FAILED'),'error');swNickRender(prev);return;}
+swNickRender(saved);
+if(!prev){showToast(tt('HOME.WELCOME_NEW',{name:saved}),'success');}else{showToast(tt('HOME.SAVED'),'success');}
+}else{
+swNickRender(swNickGet());
+}
+}
+nicknameBtn.addEventListener('click',function(e){if(e.target!==nicknameInput)swNickEdit();});
+nicknameInput.addEventListener('click',function(e){e.stopPropagation();});
+nicknameInput.addEventListener('keydown',function(e){
+if(e.key==='Enter'){e.preventDefault();e.stopPropagation();swNickDone(true);}
+else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();swNickDone(false);}
+});
+nicknameInput.addEventListener('blur',function(){swNickDone(true);});
+swNickRender(swNickGet());
+
+function formatTime(sec){
+if(sec===null||sec===undefined||isNaN(sec)||!isFinite(sec))return'--:--';
+var m=Math.floor(sec/60);var s=Math.floor(sec%60);
+return m+':'+(s<10?'0':'')+s;
+}
+
+// 读取缓存的歌曲时长（播放页播放过后会缓存）
+function getCachedDuration(trackId){
+try{
+  var saved=localStorage.getItem('soundwave_track_durations');
+  if(!saved)return null;
+  var durations=JSON.parse(saved);
+  if(durations&&durations[trackId])return durations[trackId];
+}catch(e){}
+return null;
+}
+
+// 保存时长到缓存
+function saveCachedDuration(trackId,duration){
+try{
+  var durations={};
+  var saved=localStorage.getItem('soundwave_track_durations');
+  if(saved)durations=JSON.parse(saved);
+  durations[trackId]=duration;
+  localStorage.setItem('soundwave_track_durations',JSON.stringify(durations));
+}catch(e){}
+}
+
+// 预加载所有歌曲的真实时长（首页加载时自动调用）
+var preloadQueue=[];
+var preloadRunning=false;
+function preloadDurations(tracks){
+if(!tracks||tracks.length===0)return;
+for(var i=0;i<tracks.length;i++){
+  var t=tracks[i];
+  if(!getCachedDuration(t.id)){
+    preloadQueue.push(t);
+  }
+}
+if(preloadRunning)return;
+preloadRunning=true;
+processPreloadQueue();
+}
+
+function processPreloadQueue(){
+if(preloadQueue.length===0){preloadRunning=false;return;}
+var t=preloadQueue.shift();
+try{
+  var audio=new Audio();
+  audio.preload='metadata';
+  audio.addEventListener('loadedmetadata',function(){
+    if(audio.duration&&isFinite(audio.duration)&&audio.duration>0){
+      saveCachedDuration(t.id,audio.duration);
+      var el=document.querySelector('[data-duration-id="'+t.id+'"]');
+      if(el)el.textContent=formatTime(audio.duration);
+    }
+    audio.src='';
+    setTimeout(processPreloadQueue,100);
+  });
+  audio.addEventListener('error',function(){
+    audio.src='';
+    setTimeout(processPreloadQueue,100);
+  });
+  audio.src=t.src;
+}catch(e){
+  setTimeout(processPreloadQueue,100);
+}
+}
+
+// ===== XSS 防护：HTML 转义 =====
+function escapeHtml(str){
+if(!str)return'';
+return String(str)
+.replace(/&/g,'&amp;')
+.replace(/</g,'&lt;')
+.replace(/>/g,'&gt;')
+.replace(/"/g,'&quot;')
+.replace(/'/g,'&#039;');
+}
+
+// ===== 封面：从 mp3 的 dataURL 提取 ID3v2 内嵌封面 =====
+// 字节数组转 dataURL（分块避免 apply 爆栈）
+function swBytesToDataUrl(mime,bytes){
+var bin='',CH=0x8000;
+for(var i=0;i<bytes.length;i+=CH){bin+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+CH,bytes.length)));}
+return 'data:'+mime+';base64,'+btoa(bin);
+}
+// ===== 多格式封面提取（纯手写，无外部库；任何异常都返回 null，不影响导入）=====
+function swReadU32Be(b,o){return (((b[o]<<24)|(b[o+1]<<16)|(b[o+2]<<8)|b[o+3])>>>0);}
+function swSyncsafe(b,o){return ((b[o]&0x7f)<<21)|((b[o+1]&0x7f)<<14)|((b[o+2]&0x7f)<<7)|(b[o+3]&0x7f);}
+function swAtobBytes(b64,maxChars){
+var n=Math.min(b64.length,maxChars);n-=n%4;
+var bin=atob(b64.slice(0,n));var out=new Uint8Array(bin.length);
+for(var i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);
+return out;
+}
+function swDetectMime(b){
+if(b.length>=12){
+if(b[0]===0xff&&b[1]===0xd8&&b[2]===0xff)return'image/jpeg';
+if(b[0]===0x89&&b[1]===0x50&&b[2]===0x4e&&b[3]===0x47)return'image/png';
+if(b[0]===0x47&&b[1]===0x49&&b[2]===0x46&&b[3]===0x38)return'image/gif';
+if(b[0]===0x42&&b[1]===0x4d)return'image/bmp';
+if(b[0]===0x52&&b[1]===0x49&&b[2]===0x46&&b[3]===0x46&&b[8]===0x57&&b[9]===0x45&&b[10]===0x42&&b[11]===0x50)return'image/webp';
+}
+return null;
+}
+function swDeunsync(bytes){
+var out=[];for(var i=0;i<bytes.length;i++){
+out.push(bytes[i]);
+if(bytes[i]===0xff&&bytes[i+1]===0x00&&i+1<bytes.length)i++;
+}
+return new Uint8Array(out);
+}
+function swFindSig(b,sig,from){
+for(var i=from||0;i+4<=b.length;i++){
+if(b[i]===sig.charCodeAt(0)&&b[i+1]===sig.charCodeAt(1)&&b[i+2]===sig.charCodeAt(2)&&b[i+3]===sig.charCodeAt(3))return i;
+}
+return -1;
+}
+function swScanImage(b){
+for(var i=0;i+3<b.length;i++){
+if(b[i]===0xff&&b[i+1]===0xd8&&b[i+2]===0xff){
+var e=b.length;for(var j=b.length-2;j>i;j--){if(b[j]===0xff&&b[j+1]===0xd9){e=j+2;break;}}
+var img=b.subarray(i,e);var m=swDetectMime(img);if(m)return swBytesToDataUrl(m,img);
+}
+}
+for(var i=0;i+4<b.length;i++){
+if(b[i]===0x89&&b[i+1]===0x50&&b[i+2]===0x4e&&b[i+3]===0x47){
+var e=Math.min(i+2000000,b.length);
+for(var j=i+4;j+8<b.length;j++){if(b[j]===0x49&&b[j+1]===0x45&&b[j+2]===0x4e&&b[j+3]===0x44){e=j+8;break;}}
+var img=b.subarray(i,e);var m=swDetectMime(img);if(m)return swBytesToDataUrl(m,img);
+}
+}
+return null;
+}
+function swExtractMp4(b){
+try{
+var covr=swFindSig(b,'covr',0);if(covr<0)return null;
+var boxSize=swReadU32Be(b,covr-4);
+var p=covr+4;var end=boxSize>16?Math.min(covr-4+boxSize,b.length):Math.min(covr+4000000,b.length);
+while(p+8<=end){
+var sz=swReadU32Be(b,p);
+var sig=String.fromCharCode(b[p+4],b[p+5],b[p+6],b[p+7]);
+if(sz<8||p+sz>end+8)break;
+var img=b.subarray(p+8,p+sz);
+var m=swDetectMime(img)||(sig.indexOf('png')===0?'image/png':'image/jpeg');
+if(swDetectMime(img)||/jpeg|png /.test(sig))return swBytesToDataUrl(m,img);
+p+=sz;
+}
+return swScanImage(b.subarray(covr+4,end));
+}catch(e){return null;}
+}
+function swParseFlacPicture(b){
+var o=4;
+var mimeLen=swReadU32Be(b,o);o+=4;
+var mime=b.toString('latin1',o,o+mimeLen);o+=mimeLen;
+var descLen=swReadU32Be(b,o);o+=4+descLen;
+o+=16;
+var dataLen=swReadU32Be(b,o);o+=4;
+var img=b.subarray(o,o+dataLen);
+return swBytesToDataUrl(swDetectMime(img)||mime||'image/jpeg',img);
+}
+function swExtractFlac(b){
+try{
+if(!(b[0]===0x66&&b[1]===0x4c&&b[2]===0x61&&b[3]===0x43))return null;
+var p=4,isLast=false;
+while(!isLast&&p+4<b.length){
+var hdr=b[p];isLast=(hdr&0x80)===0x80;var type=hdr&0x7f;
+var len=(b[p+1]<<16)|(b[p+2]<<8)|b[p+3];
+if(type===4){try{return swParseFlacPicture(b.subarray(p+4,p+4+len));}catch(e){return null;}}
+p+=4+len;
+}
+return null;
+}catch(e){return null;}
+}
+function swExtractId3(b64){
+var head=swAtobBytes(b64,256);
+if(head.length<10||!(head[0]===0x49&&head[1]===0x44&&head[2]===0x33))return null;
+var major=head[3],flags=head[5];
+var tagSize=swSyncsafe(head,6);
+// Never decode an untrusted tag size without a hard cap: malformed files can
+// otherwise make the browser decode the entire audio repeatedly.
+var maxTagBytes=2*1024*1024;
+var bytes=swAtobBytes(b64,Math.min(b64.length,Math.ceil((10+Math.min(tagSize,maxTagBytes))/3)*4+4));
+if(tagSize>maxTagBytes)return null;
+if(flags&0x80)bytes=swDeunsync(bytes);
+var limit=bytes.length;
+function skipDesc(p,enc,end){
+if(enc===1||enc===2){while(p+1<end){if(bytes[p]===0&&bytes[p+1]===0)return p+2;p++;}return end;}
+while(p<end&&bytes[p]!==0)p++;return Math.min(p+1,end);
+}
+var off=10;
+if(flags&0x40){off+=(major===4)?swSyncsafe(bytes,off):swReadU32Be(bytes,off);}
+if(major===2){
+while(off+6<=limit){
+var id2=String.fromCharCode(bytes[off],bytes[off+1],bytes[off+2]);
+if(id2.charCodeAt(0)===0)break;
+var sz2=(bytes[off+3]<<16)|(bytes[off+4]<<8)|bytes[off+5];
+if(sz2<=0||off+6+sz2>limit)break;
+if(id2==='PIC'){
+var fe2=off+6,p2=off+6,enc2=bytes[p2];
+var fmt2=String.fromCharCode(bytes[p2+1],bytes[p2+2],bytes[p2+3]);
+p2+=4;p2=skipDesc(p2,enc2,fe2);
+var im2=bytes.subarray(p2,fe2);
+if(im2.length>=100)return swBytesToDataUrl(swDetectMime(im2)||(/png/i.test(fmt2)?'image/png':'image/jpeg'),im2);
+}
+off+=6+sz2;
+}
+return null;
+}
+while(off+10<=limit){
+var fid=String.fromCharCode(bytes[off],bytes[off+1],bytes[off+2],bytes[off+3]);
+if(fid.charCodeAt(0)===0)break;
+var fsz=major===4?swSyncsafe(bytes,off+4):swReadU32Be(bytes,off+4);
+if(fsz<=0||off+10+fsz>limit)break;
+if(fid==='APIC'){
+var frameEnd=off+10+fsz,p=off+10,enc=bytes[p];p++;
+var ms=p;while(p<frameEnd&&bytes[p]!==0)p++;
+var declared='image/jpeg';
+try{var dm=bytes.toString('latin1',ms,p);if(/image\//.test(dm))declared=dm;}catch(e){}
+p++;p++;p=skipDesc(p,enc,frameEnd);
+var img=bytes.subarray(p,frameEnd);
+if(img.length>=100){
+var real=swDetectMime(img);
+if(!real){var du=swDeunsync(img);if(swDetectMime(du)){real=swDetectMime(du);img=du;}}
+return swBytesToDataUrl(real||declared,img);
+}
+}
+off+=10+fsz;
+}
+return null;
+}
+function swExtractCover(dataUrl){
+try{
+if(!dataUrl||dataUrl.indexOf('data:audio')!==0)return null;
+var comma=dataUrl.indexOf(',');if(comma<0)return null;
+var b64=dataUrl.slice(comma+1);
+var probe=swAtobBytes(b64,128*1024);
+if(probe.length>=8){
+if(probe[4]===0x66&&probe[5]===0x74&&probe[6]===0x79&&probe[7]===0x70){var mp4=swAtobBytes(b64,Math.min(b64.length,8*1024*1024));return swExtractMp4(mp4);}
+if(probe[0]===0x66&&probe[1]===0x4c&&probe[2]===0x61&&probe[3]===0x43){var fl=swAtobBytes(b64,Math.min(b64.length,8*1024*1024));return swExtractFlac(fl);}
+if(probe[0]===0x49&&probe[1]===0x44&&probe[2]===0x33)return swExtractId3(b64);
+}
+return null;
+}catch(e){return null;}
+}
+// canvas 压缩封面：最大边 320、JPEG 0.82；仍过大再降到 200/0.7，超过 130KB 则放弃
+function swShrinkCover(dataUrl,cb){
+var img=new Image();
+img.onload=function(){
+try{
+var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+if(!w||!h){cb(null);return;}
+function draw(max,q){
+var s=Math.min(1,max/Math.max(w,h));
+var nw=Math.max(1,Math.round(w*s)),nh=Math.max(1,Math.round(h*s));
+var c=document.createElement('canvas');c.width=nw;c.height=nh;
+var ctx=c.getContext('2d');ctx.fillStyle='#14142b';ctx.fillRect(0,0,nw,nh);ctx.drawImage(img,0,0,nw,nh);
+return c.toDataURL('image/jpeg',q);
+}
+var out=draw(320,0.82);
+if(out.length>90*1024)out=draw(200,0.7);
+cb(out.length>130*1024?null:out);
+}catch(e){cb(null);}
+};
+img.onerror=function(){cb(null);};
+img.src=dataUrl;
+}
+// 列表封面单元格：优先显示真实封面，缺失时落回默认封面，避免音符占位
+function coverCell(t){
+var cover=(t&&t.cover)?t.cover:(typeof window.getDefaultCover==='function'?window.getDefaultCover():'' );
+if(cover)return '<div class="track-cover"><img src="'+cover+'" alt="" loading="lazy"></div>';
+return '<div class="track-cover">&#127911;</div>';
+}
+function bindCoverFallback(root){
+var fallback=typeof window.getDefaultCover==='function'?window.getDefaultCover():'';
+var images=root.querySelectorAll('.track-cover img');
+for(var i=0;i<images.length;i++){
+images[i].addEventListener('error',function(){
+if(fallback&&this.src!==fallback){this.src=fallback;return;}
+this.parentNode.innerHTML='&#127911;';
+});
+}
+}
+
+// 获取所有歌曲（内置+自定义），通过游戏SDK的导出函数获取
+function getAll(){
+try{if(typeof getAllTracks==='function')return getAllTracks();}catch(e){}
+return[];
+}
+
+// ===== 渲染歌曲列表 =====
+function renderTracks(tracks){
+if(!tracks||tracks.length===0){
+trackList.innerHTML='<div class="empty-state"><div class="icon">&#127925;</div><div>'+tt('HOME.NO_TRACKS')+'</div></div>';
+return;
+}
+var html='';
+var currentPlayingId=null;
+try{var ct=window.HackhubSDK&&HackhubSDK.Variables?HackhubSDK.Variables.get('sw_current_track'):null;if(ct)currentPlayingId=ct.id;}catch(e){}
+for(var i=0;i<tracks.length;i++){
+var t=tracks[i];
+var playingCls=(currentPlayingId===t.id)?' now-playing':'';
+html+='<div class="track-item'+playingCls+'" data-id="'+t.id+'">'+
+coverCell(t)+
+'<div class="track-info">'+
+'<div class="track-title">'+escapeHtml(t.title)+(t.isCustom?'<span class="custom-badge">'+tt('COMMON.MY')+'</span>':'')+'</div>'+
+'<div class="track-artist">'+escapeHtml(t.artist)+' · '+escapeHtml(t.album)+'</div>'+
+'</div>'+
+'<div class="track-duration" data-duration-id="'+t.id+'">'+(formatTime(getCachedDuration(t.id))||'--:--')+'</div>'+
+(t.isCustom?'<button class="edit-btn" data-id="'+t.id+'" title="'+tt('COMMON.EDIT')+'">&#9998;</button><button class="delete-btn" data-id="'+t.id+'" title="'+tt('COMMON.DELETE')+'">&#128465;</button>':'')+
+'<div class="play-btn"></div>'+
+'</div>';
+}
+trackList.innerHTML=html;
+bindCoverFallback(trackList);
+
+var items=document.querySelectorAll('.track-item');
+for(var j=0;j<items.length;j++){
+(function(el){
+el.addEventListener('click',function(e){
+try{
+if(e.target.closest('.delete-btn')||e.target.closest('.edit-btn'))return;
+var id=el.getAttribute('data-id');
+if(window.HackhubSDK&&HackhubSDK.Browser)HackhubSDK.Browser.navigate('/player/'+id);
+}catch(err){showToast(tt('HOME.NAV_FAILED'),'error');}
+});
+})(items[j]);
+}
+
+// ===== 删除按钮：弹窗确认 =====
+var delBtns=document.querySelectorAll('.delete-btn');
+for(var k=0;k<delBtns.length;k++){
+(function(btn){
+btn.addEventListener('click',function(e){
+e.stopPropagation();
+var id=btn.getAttribute('data-id');
+var all=getAll();
+var track=all.find(function(t){return t.id===id;});
+pendingDeleteId=id;
+confirmMsg.textContent=tt('HOME.CONFIRM_DELETE_NAMED',{title:(track?track.title:tt('HOME.CONFIRM_DELETE_FALLBACK'))});
+confirmOverlay.classList.add('show');
+});
+})(delBtns[k]);
+}
+
+var editBtns=document.querySelectorAll('.edit-btn');
+for(var e=0;e<editBtns.length;e++){
+(function(btn){
+btn.addEventListener('click',function(e){
+e.stopPropagation();
+var id=btn.getAttribute('data-id');
+var item=btn.closest('.track-item');
+if(!item)return;
+var allTracksData=getAll();
+var trackData=null;
+for(var ti=0;ti<allTracksData.length;ti++){
+if(allTracksData[ti].id===id){trackData=allTracksData[ti];break;}
+}
+var oldTitle=trackData?trackData.title:'';
+var oldArtist=trackData?trackData.artist:'';
+var infoEl=item.querySelector('.track-info');
+if(!infoEl)return;
+infoEl.innerHTML='<input type="text" class="edit-title-input" value="'+oldTitle.replace(/"/g,'&quot;')+'" placeholder="'+tt('HOME.EDIT_TITLE_PH')+'"><input type="text" class="edit-artist-input" value="'+oldArtist.replace(/"/g,'&quot;')+'" placeholder="'+tt('HOME.EDIT_ARTIST_PH')+'">';
+var titleInput=infoEl.querySelector('.edit-title-input');
+var artistInput=infoEl.querySelector('.edit-artist-input');
+if(titleInput){
+titleInput.addEventListener('click',function(ev){ev.stopPropagation();});
+titleInput.addEventListener('keydown',function(ev){ev.stopPropagation();if(ev.key==='Enter'){saveBtn.click();}});
+}
+if(artistInput){
+artistInput.addEventListener('click',function(ev){ev.stopPropagation();});
+artistInput.addEventListener('keydown',function(ev){ev.stopPropagation();if(ev.key==='Enter'){saveBtn.click();}});
+}
+var btnContainer=document.createElement('div');
+btnContainer.style.display='flex';
+btnContainer.style.alignItems='center';
+var saveBtn=document.createElement('button');
+saveBtn.className='save-btn';
+saveBtn.innerHTML='&#10003;';
+saveBtn.title=tt('COMMON.SAVE');
+var cancelBtn=document.createElement('button');
+cancelBtn.className='cancel-btn';
+cancelBtn.innerHTML='&#10005;';
+cancelBtn.title=tt('COMMON.CANCEL');
+btnContainer.appendChild(saveBtn);
+btnContainer.appendChild(cancelBtn);
+var oldEditBtn=item.querySelector('.edit-btn');
+var oldDelBtn=item.querySelector('.delete-btn');
+if(oldEditBtn)oldEditBtn.style.display='none';
+if(oldDelBtn)oldDelBtn.style.display='none';
+item.appendChild(btnContainer);
+saveBtn.addEventListener('click',function(ev){
+ev.stopPropagation();
+var titleInput=item.querySelector('.edit-title-input');
+var artistInput=item.querySelector('.edit-artist-input');
+var newTitle=titleInput?titleInput.value.trim():'';
+var newArtist=artistInput?artistInput.value.trim():'';
+if(!newTitle){showToast(tt('HOME.EDIT_TITLE_EMPTY'),'error');return;}
+try{
+var res=typeof updateCustomTrack==='function'?updateCustomTrack(id,{title:newTitle,artist:newArtist||''}):{success:false,message:tt('HOME.SAVE_FAILED')};
+if(res&&res.success){
+showToast(tt('HOME.SAVED'),'success');
+loadAll();
+}else{
+showToast((res&&res.message)||tt('HOME.SAVE_FAILED'),'error');
+}
+}catch(err){showToast(tt('HOME.SAVE_FAILED'),'error');}
+});
+cancelBtn.addEventListener('click',function(ev){
+ev.stopPropagation();
+loadAll();
+});
+});
+})(editBtns[e]);
+}
+
+}
+
+// ===== 加载全部歌曲并渲染 =====
+
+function loadAll(){
+try{
+var catTitleKey={all:'HOME.ALL_MUSIC',electronic:'CATEGORY.ELECTRONIC',hiphop:'CATEGORY.HIPHOP',game:'CATEGORY.GAME',chinese:'CATEGORY.CHINESE',custom:'CATEGORY.CUSTOM'};
+sectionTitle.textContent=tt(catTitleKey[currentCategory]||'HOME.ALL_MUSIC');
+
+var tracks=getAll();
+
+if(currentCategory!=='all'){
+  if(currentCategory==='custom'){
+    tracks=tracks.filter(function(t){return t.isCustom;});
+  }else{
+    tracks=tracks.filter(function(t){return t.category===currentCategory;});
+  }
+}
+
+renderTracks(tracks);
+preloadDurations(tracks);
+renderRecentPlay();
+}catch(err){
+trackList.innerHTML='<div class="empty-state"><div class="icon">&#9888;</div><div>'+tt('HOME.LOAD_FAILED')+'</div></div>';
+}
+}
+
+// ===== 播放历史（按账号，走后端 Storage；首页只读）=====
+function getHistory(){
+try{if(typeof window.getPlayHistory==='function')return window.getPlayHistory()||[];}catch(e){}
+return[];
+}
+
+// ===== 渲染最近播放列表 =====
+function renderRecentPlay(){
+try{
+  var history=getHistory();
+  if(!history||history.length===0){
+    recentSection.style.display='none';
+    return;
+  }
+  var recent=history.slice(0,5);
+  var allTracks=getAll();
+  var html='';
+  for(var i=0;i<recent.length;i++){
+    var historyTrack=recent[i];
+    var t=historyTrack;
+    for(var ti=0;ti<allTracks.length;ti++){
+      if(allTracks[ti].id===historyTrack.id){t=allTracks[ti];break;}
+    }
+    html+='<div class="track-item" data-id="'+t.id+'">'+
+      coverCell(t)+
+      '<div class="track-info">'+
+      '<div class="track-title">'+escapeHtml(t.title)+'</div>'+
+      '<div class="track-artist">'+escapeHtml(t.artist)+'</div>'+
+      '</div>'+
+      '<div class="play-btn"></div>'+
+      '</div>';
+  }
+  recentList.innerHTML=html;
+  bindCoverFallback(recentList);
+  recentSection.style.display='block';
+
+  var items=recentList.querySelectorAll('.track-item');
+  for(var j=0;j<items.length;j++){
+    (function(el){
+      el.addEventListener('click',function(){
+        try{
+          var id=el.getAttribute('data-id');
+          if(window.HackhubSDK&&HackhubSDK.Browser)HackhubSDK.Browser.navigate('/player/'+id);
+        }catch(e){}
+      });
+    })(items[j]);
+  }
+}catch(e){
+  recentSection.style.display='none';
+}
+}
+
+// ===== 导入音乐按钮 =====
+importBtn.addEventListener('click', function () {
+  try {
+    fileInput.value = '';
+    fileInput.click();
+  } catch (e) {}
+});
+
+
+// 删除歌曲确认弹窗
+var pendingDeleteId=null;
+var confirmOverlay=document.getElementById('confirmOverlay');
+var confirmMsg=document.getElementById('confirmMsg');
+document.getElementById('confirmOk').addEventListener('click',function(){
+  if(pendingDeleteId){
+    var res=typeof deleteCustomTrack==='function'?deleteCustomTrack(pendingDeleteId):{success:false};
+    if(res&&res.success){showToast(tt('HOME.DELETE_SUCCESS'),'success');loadAll();updateImportHint();}
+    else{showToast((res&&res.message)||tt('HOME.DELETE_FAILED'),'error');}
+  }
+  confirmOverlay.classList.remove('show');
+  pendingDeleteId=null;
+});
+document.getElementById('confirmCancel').addEventListener('click',function(){
+  confirmOverlay.classList.remove('show');
+  pendingDeleteId=null;
+});
+confirmOverlay.addEventListener('click',function(e){
+  if(e.target===confirmOverlay){confirmOverlay.classList.remove('show');pendingDeleteId=null;}
+});
+
+// ===== 文件选择change事件：处理用户选择的音频文件 =====
+fileInput.addEventListener('change',function(e){
+var importProgress=document.getElementById('importProgress');
+if(importProgress)importProgress.classList.add('show');
+var files=Array.prototype.slice.call(e.target.files||[]);
+if(files.length===0){
+if(importProgress)importProgress.classList.remove('show');
+return;
+}
+importBtn.disabled=true;importBtn.innerHTML='<span>&#9203;</span><span>'+tt('HOME.IMPORTING_BTN')+'</span>';
+var limits=typeof getCustomLimits==='function'?getCustomLimits():{maxTrackSizeMB:15};
+var success=0,fail=0,idx=0;
+function next(){
+if(idx>=files.length){
+importBtn.disabled=false;importBtn.innerHTML='<span>&#10133;</span><span>'+tt('HOME.IMPORT')+'</span>';
+if(success>0){showToast(fail>0?tt('HOME.IMPORT_SUCCESS_MORE',{count:success,fail:fail}):tt('HOME.IMPORT_SUCCESS',{count:success}),'success');searchInput.value='';loadAll();updateImportHint();}
+if(importProgress)importProgress.classList.remove('show');
+return;
+}
+var file=files[idx];idx++;
+try{
+if(typeof addCustomTrack!=='function'){fail++;showToast(tt('HOME.IMPORT_UNAVAILABLE'),'error');next();return;}
+if(file.size>limits.maxTrackSizeMB*1024*1024){fail++;showToast(tt('HOME.FILE_TOO_BIG',{name:file.name}),'error');next();return;}
+var reader=new FileReader();
+reader.onload=function(){
+try{
+var nameWithoutExt=file.name.replace(/\.[^/.]+$/,'');
+var title=nameWithoutExt,artist='';
+var parts=nameWithoutExt.split(' - ');
+if(parts.length>=2){artist=parts[0].trim();title=parts.slice(1).join(' - ').trim();}
+var res=addCustomTrack({title:title,artist:artist,album:'',src:reader.result,sizeBytes:file.size});
+if(res&&res.success){
+		success++;
+		try{
+			var audio=new Audio();
+			audio.preload='metadata';
+			audio.src=reader.result;
+			audio.addEventListener('loadedmetadata',function(){
+				try{
+					var dur=audio.duration;
+					if(dur&&!isNaN(dur)&&dur>0&&dur!==Infinity){
+						var m=Math.floor(dur/60);
+						var s=Math.floor(dur%60);
+						var durStr=m+':'+(s<10?'0':'')+s;
+						if(typeof updateCustomTrack==='function'&&res.track&&res.track.id){
+							updateCustomTrack(res.track.id,{duration:durStr});
+						}
+					}
+				}catch(e){}
+			});
+			audio.load();
+		}catch(e){}
+		try{
+			var cover0=swExtractCover(reader.result);
+			if(cover0&&res.track&&res.track.id){
+				var coverTrackId=res.track.id;
+				swShrinkCover(cover0,function(shrunk){
+					try{
+						if(shrunk&&typeof updateCustomTrack==='function'){
+							updateCustomTrack(coverTrackId,{cover:shrunk});
+							loadAll();
+						}
+					}catch(e){}
+				});
+			}
+		}catch(e){}
+	}else{
+		fail++;
+		showToast('「'+file.name+'」'+((res&&res.message)||tt('HOME.IMPORT_FAILED')),'error');
+	}
+}catch(err){fail++;showToast('「'+file.name+'」'+tt('HOME.IMPORT_FAILED'),'error');}
+next();
+};
+reader.onerror=function(){fail++;showToast('「'+file.name+'」'+tt('HOME.READ_FAILED'),'error');next();};
+reader.readAsDataURL(file);
+}catch(err){fail++;next();}
+}
+next();
+});
+
+// ===== 搜索功能 =====
+searchInput.addEventListener('input',function(e){
+try{
+var kw=e.target.value.trim();
+if(kw===''){loadAll();}
+else{
+sectionTitle.textContent=tt('HOME.SEARCH_RESULTS');
+var results=typeof searchTracks==='function'?searchTracks(kw):[];
+renderTracks(results);
+}
+}catch(err){showToast(tt('HOME.SEARCH_FAILED'),'error');}
+});
+
+// ===== 更新导入提示 =====
+function updateImportHint(){
+try{
+if(typeof getCustomLimits==='function'&&typeof getCustomTracks==='function'){
+var limits=getCustomLimits();var custom=getCustomTracks();
+importHint.textContent=tt('HOME.IMPORT_HINT_DYNAMIC',{size:limits.maxTrackSizeMB,max:limits.maxTracks,cur:custom.length});
+}
+}catch(e){}
+}
+
+// ===== 补全旧自定义音乐的真实时长 =====
+function fixCustomDurations(){
+try{
+	if(typeof getCustomTracks==='function'&&typeof updateCustomTrack==='function'){
+		var customTracks=getCustomTracks();
+		customTracks.forEach(function(track){
+			var durInvalid=!track.duration||track.duration==='0:00'||track.duration==='0:0'||track.duration==='--:--';
+			if(durInvalid&&track.src){
+				try{
+					var audio=new Audio();
+					audio.preload='metadata';
+					audio.src=track.src;
+					audio.addEventListener('loadedmetadata',function(){
+						try{
+							var dur=audio.duration;
+							if(dur&&!isNaN(dur)&&dur>0&&dur!==Infinity){
+								var m=Math.floor(dur/60);
+								var s=Math.floor(dur%60);
+								var durStr=m+':'+(s<10?'0':'')+s;
+								updateCustomTrack(track.id,{duration:durStr});
+							}
+						}catch(e){}
+					});
+					audio.load();
+				}catch(e){}
+			}
+		});
+	}
+}catch(e){}
+}
+
+// ===== 分类切换事件 =====
+if(categoryTabs){
+var tabs=categoryTabs.querySelectorAll('.category-tab');
+for(var ti=0;ti<tabs.length;ti++){
+  (function(tab){
+    tab.addEventListener('click',function(){var cat=tab.getAttribute('data-category');for(var tj=0;tj<tabs.length;tj++)tabs[tj].classList.remove('active');tab.classList.add('active');currentCategory=cat;loadAll();});
+  })(tabs[ti]);
+}
+}
+
+// ===== 初始化应用数据 =====
+function initAppData(){
+  updateImportHint();
+  loadAll();
+  fixCustomDurations();
+}
+
+// 打开网站直接加载，无需登录
+initAppData();
+</script>
+</body>
+</html>

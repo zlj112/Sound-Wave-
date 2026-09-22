@@ -1,0 +1,19 @@
+{
+  "id": "soundwave-music",
+  "name": "SoundWave 音乐站",
+  "version": "1.4.4",
+  "author": "zlj223",
+  "description": "游戏内音乐站：内置歌单、自定义导入、黑客终端播放器，中英文自动切换 / In-game music site with a built-in playlist, custom track import and a hacker terminal player; auto English/Chinese.",
+  "apiVersion": 1,
+  "permissions": [
+    "filesystem",
+    "events",
+    "ui"
+  ],
+  "cover": "assets/cover.jpg",
+  "tags": [
+    "website",
+    "music",
+    "audio"
+  ]
+}

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="background:#0f0c29;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoundWave Player</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+background-color:#0f0c29;
+background:linear-gradient(160deg,#0f0c29 0%,#302b63 40%,#24243e 100%);
+color:#fff;font-family:'Segoe UI',-apple-system,sans-serif;min-height:100vh;
+display:flex;flex-direction:column;align-items:center;padding:30px 20px;
+}
+.back-btn{
+align-self:flex-start;display:flex;align-items:center;gap:8px;
+padding:10px 18px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);
+border-radius:24px;color:#c0c0e0;cursor:pointer;font-size:14px;transition:all 0.25s;margin-bottom:20px;
+}
+.back-btn:hover{background:rgba(255,255,255,0.14);color:#fff}
+.player-container{
+width:100%;max-width:420px;background:rgba(255,255,255,0.06);
+border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:36px 30px;
+}
+.album-cover{
+width:100%;aspect-ratio:1;border-radius:18px;
+background:linear-gradient(135deg,#00d4ff 0%,#7b2ff7 50%,#f107a3 100%);
+display:flex;align-items:center;justify-content:center;font-size:80px;
+margin-bottom:28px;box-shadow:0 20px 60px rgba(123,47,247,0.4);
+position:relative;overflow:hidden;
+}
+.album-cover::before{
+content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+background:conic-gradient(from 0deg,transparent,rgba(255,255,255,0.1),transparent);
+animation:rotate 4s linear infinite;
+}
+@keyframes rotate{to{transform:rotate(360deg)}}
+.album-cover span{position:relative;z-index:1}
+.album-cover img{position:relative;z-index:1;width:100%;height:100%;object-fit:cover;display:block;border-radius:18px}
+.track-info{text-align:center;margin-bottom:24px}
+.track-title{font-size:24px;font-weight:700;margin-bottom:8px}
+.track-artist{font-size:15px;color:#a0a0c0}
+.track-album{font-size:13px;color:#707090;margin-top:4px}
+.progress-container{margin-bottom:20px}
+.progress-bar{
+width:100%;height:6px;background:rgba(255,255,255,0.12);
+border-radius:3px;cursor:pointer;position:relative;overflow:hidden;
+}
+.progress-fill{
+height:100%;background:linear-gradient(90deg,#00d4ff,#7b2ff7);
+border-radius:3px;width:0%;transition:width 0.1s linear;
+}
+.time-display{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#8080a0}
+.controls{display:flex;align-items:center;justify-content:center;gap:28px;margin-bottom:24px}
+.ctrl-btn{
+width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.08);
+border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+font-size:20px;transition:all 0.2s;
+}
+.ctrl-btn:hover{background:rgba(255,255,255,0.16);transform:scale(1.08)}
+.mode-btn{
+width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.06);
+border:none;color:#8080a0;cursor:pointer;display:flex;align-items:center;justify-content:center;
+font-size:17px;transition:all 0.2s;
+}
+.mode-btn:hover{background:rgba(255,255,255,0.12);color:#fff}
+.mode-btn.active{color:#00d4ff}
+.play-pause-btn{
+width:64px;height:64px;background:linear-gradient(135deg,#00d4ff,#7b2ff7);
+font-size:26px;box-shadow:0 8px 24px rgba(123,47,247,0.5);
+}
+.play-pause-btn:hover{transform:scale(1.1)}
+.volume-container{display:flex;align-items:center;gap:12px}
+.volume-icon{color:#8080a0;font-size:16px}
+.volume-slider{
+flex:1;-webkit-appearance:none;appearance:none;height:4px;
+background:rgba(255,255,255,0.12);border-radius:2px;outline:none;
+}
+.volume-slider::-webkit-slider-thumb{
+-webkit-appearance:none;appearance:none;width:14px;height:14px;
+border-radius:50%;background:#00d4ff;cursor:pointer;
+}
+.playlist-toggle{
+margin-top:22px;padding:11px;border-radius:12px;
+background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+color:#c0c0e0;cursor:pointer;font-size:14px;width:100%;
+display:flex;align-items:center;justify-content:center;gap:8px;
+transition:all 0.25s;
+}
+.playlist-toggle:hover{background:rgba(255,255,255,0.1);color:#fff}
+.playlist-panel{
+margin-top:12px;max-height:0;overflow:hidden;transition:max-height 0.35s ease;
+}
+.playlist-panel.open{max-height:320px}
+.playlist-items{
+background:rgba(0,0,0,0.25);border-radius:12px;padding:6px;
+max-height:300px;overflow-y:auto;
+}
+.playlist-items::-webkit-scrollbar{width:4px}
+.playlist-items::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:2px}
+.playlist-item{
+display:flex;align-items:center;padding:9px 10px;border-radius:8px;
+cursor:pointer;transition:background 0.2s;
+}
+.playlist-item:hover{background:rgba(255,255,255,0.08)}
+.playlist-item.active{background:rgba(0,212,255,0.15)}
+.playlist-item .pl-num{width:22px;color:#8080a0;font-size:12px;flex-shrink:0;text-align:center}
+.playlist-item.active .pl-num{color:#00d4ff}
+.playlist-item .pl-info{flex:1;min-width:0;margin-left:6px}
+.playlist-item .pl-title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.playlist-item.active .pl-title{color:#00d4ff;font-weight:600}
+.playlist-item .pl-artist{font-size:11px;color:#8080a0;margin-top:2px}
+.playlist-item .pl-tag{color:#00d4ff;font-size:11px;flex-shrink:0;margin-left:8px;font-weight:600}
+.error-msg{text-align:center;padding:40px 20px;color:#ff6b6b}
+</style>
+</head>
+<body style="background-color:#0f0c29;">
+<div class="back-btn" id="backBtn"><span>&#8592;</span><span data-i18n="PLAYER.BACK">返回歌单</span></div>
+<div class="player-container" id="playerContainer">
+<div class="album-cover" id="albumCover"><span>&#127911;</span></div>
+<div class="track-info">
+<div class="track-title" id="trackTitle" data-i18n="PLAYER.LOADING">加载中...</div>
+<div class="track-artist" id="trackArtist">SoundWave</div>
+<div class="track-album" id="trackAlbum"></div>
+</div>
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="time-display"><span id="currentTime">0:00</span><span id="totalTime">0:00</span></div>
+</div>
+<div class="controls">
+<button class="mode-btn" id="modeBtn" title="列表循环" data-i18n-title="PLAYER.ORDER">&#128260;</button>
+<button class="ctrl-btn" id="prevBtn" title="上一首" data-i18n-title="PLAYER.PREV_TITLE">&#9198;</button>
+<button class="ctrl-btn play-pause-btn" id="playPauseBtn" title="播放/暂停" data-i18n-title="PLAYER.PLAYPAUSE_TITLE">&#9654;</button>
+<button class="ctrl-btn" id="nextBtn" title="下一首" data-i18n-title="PLAYER.NEXT_TITLE">&#9197;</button>
+</div>
+<div class="volume-container">
+<span class="volume-icon">&#128266;</span>
+<input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+</div>
+<button class="playlist-toggle" id="playlistToggle">
+<span>&#128203;</span><span data-i18n="PLAYER.PLAYLIST">播放列表</span><span id="playlistCount">(0)</span>
+</button>
+<div class="playlist-panel" id="playlistPanel">
+<div class="playlist-items" id="playlistItems"></div>
+</div>
+<audio id="audioPlayer" preload="metadata"></audio>
+</div>
+
+<script>
+// ===== i18n helper =====
+var FALLBACK_ZH={
+"PLAYER.PAGE_TITLE":"播放器","PLAYER.LOADING":"加载中...","PLAYER.BACK":"返回歌单","PLAYER.ORDER":"列表循环","PLAYER.SHUFFLE":"随机播放","PLAYER.REPEAT":"单曲循环",
+"PLAYER.PLAYLIST":"播放列表","PLAYER.PLAYLIST_COUNT":"({{n}}首)","PLAYER.PLAYING_TAG":"播放中","PLAYER.TRACK_NOT_FOUND":"歌曲不存在或已被移除",
+"PLAYER.NOTIFY":"🎵 [{{idx}}/{{total}}] 正在播放：{{title}} — {{artist}}","PLAYER.PLAY_FAILED":"播放失败","PLAYER.AUDIO_FAILED":"音频加载失败",
+"PLAYER.NOW_PLAYING":"未播放","PLAYER.UNKNOWN":"未知","PLAYER.PREV_TITLE":"上一首","PLAYER.NEXT_TITLE":"下一首","PLAYER.PLAYPAUSE_TITLE":"播放/暂停"
+};
+var FALLBACK_EN={
+"PLAYER.PAGE_TITLE":"Player","PLAYER.LOADING":"Loading...","PLAYER.BACK":"Back to list","PLAYER.ORDER":"Loop All","PLAYER.SHUFFLE":"Shuffle","PLAYER.REPEAT":"Repeat One",
+"PLAYER.PLAYLIST":"Playlist","PLAYER.PLAYLIST_COUNT":"({{n}})","PLAYER.PLAYING_TAG":"Playing","PLAYER.TRACK_NOT_FOUND":"Track not found or removed",
+"PLAYER.NOTIFY":"🎵 [{{idx}}/{{total}}] Now playing: {{title}} — {{artist}}","PLAYER.PLAY_FAILED":"Playback failed","PLAYER.AUDIO_FAILED":"Audio failed to load",
+"PLAYER.NOW_PLAYING":"Nothing playing","PLAYER.UNKNOWN":"Unknown","PLAYER.PREV_TITLE":"Previous","PLAYER.NEXT_TITLE":"Next","PLAYER.PLAYPAUSE_TITLE":"Play/Pause"
+};
+var FALLBACK_JA={
+"PLAYER.PAGE_TITLE":"プレイヤー","PLAYER.LOADING":"読み込み中...","PLAYER.BACK":"リストに戻る","PLAYER.ORDER":"リピート再生","PLAYER.SHUFFLE":"シャッフル再生","PLAYER.REPEAT":"1曲リピート",
+"PLAYER.PLAYLIST":"プレイリスト","PLAYER.PLAYLIST_COUNT":"({{n}}曲)","PLAYER.PLAYING_TAG":"再生中","PLAYER.TRACK_NOT_FOUND":"曲が存在しないか削除されました",
+"PLAYER.NOTIFY":"🎵 [{{idx}}/{{total}}] 再生中：{{title}} — {{artist}}","PLAYER.PLAY_FAILED":"再生に失敗しました","PLAYER.AUDIO_FAILED":"音声の読み込みに失敗しました",
+"PLAYER.NOW_PLAYING":"再生していません","PLAYER.UNKNOWN":"不明","PLAYER.PREV_TITLE":"前の曲","PLAYER.NEXT_TITLE":"次の曲","PLAYER.PLAYPAUSE_TITLE":"再生/一時停止"
+};
+function swBrowserLang(){try{if(typeof window.getLanguage==='function')return window.getLanguage();}catch(e){}try{return navigator.language||'zh-CN';}catch(e){return 'zh-CN';}}
+function swIsZh(l){l=(l||'').toLowerCase();return l.indexOf('zh')>=0||l.indexOf('chin')>=0||l.indexOf('hans')>=0||l.indexOf('hant')>=0||l==='cn'||l.indexOf('-cn')>=0;}
+function swIsJa(l){l=(l||'').toLowerCase();return l==='ja'||l.indexOf('ja-')===0||l==='jp'||l.indexOf('japan')>=0||l.indexOf('-jp')>=0;}
+function swFbTable(){var l=swBrowserLang();if(swIsZh(l))return FALLBACK_ZH;if(swIsJa(l))return FALLBACK_JA;return FALLBACK_EN;}
+function swReportLanguage(){try{var l=swBrowserLang();var lang=swIsZh(l)?"zh-CN":(swIsJa(l)?"ja":"en");if(window.HackhubSDK){if(HackhubSDK.Variables){try{HackhubSDK.Variables.set("sw_lang",lang);}catch(e){}}if(HackhubSDK.Events&&HackhubSDK.Events.emit){try{HackhubSDK.Events.emit("SoundWave.Lang",{lang:lang});}catch(e){}}}return lang;}catch(e){return null;}}
+try{swReportLanguage();if(window.addEventListener){window.addEventListener("load",function(){try{swReportLanguage();}catch(e){}setTimeout(function(){try{swReportLanguage();}catch(e){}},800);});}else{setTimeout(function(){try{swReportLanguage();}catch(e){}},800);}}catch(e){}
+function tt(key,vars){
+var s=null;try{if(typeof window.t==='function')s=window.t(key,vars);}catch(e){s=null;}
+if(!s||s===key){var tb=swFbTable();s=tb[key]||FALLBACK_EN[key]||FALLBACK_ZH[key]||key;}
+if(vars){for(var k in vars){s=s.split('{{'+k+'}}').join(String(vars[k]));}}
+return s;
+}
+function applyStaticI18n(){
+var i,els;
+els=document.querySelectorAll('[data-i18n]');for(i=0;i<els.length;i++){els[i].textContent=tt(els[i].getAttribute('data-i18n'));}
+els=document.querySelectorAll('[data-i18n-title]');for(i=0;i<els.length;i++){els[i].setAttribute('title',tt(els[i].getAttribute('data-i18n-title')));}
+}
+try{document.title=tt('PLAYER.PAGE_TITLE');}catch(e){}
+applyStaticI18n();
+// ============================================
+// SoundWave 音乐站 - 播放页逻辑
+// ============================================
+
+// 获取当前播放的歌曲（从游戏SDK的exports传入）
+var track=typeof currentTrack!=='undefined'?currentTrack:null;
+// 歌曲不存在：显示错误提示
+if(!track){
+document.getElementById('playerContainer').innerHTML='<div class="error-msg"><div style="font-size:48px;margin-bottom:16px;">&#9888;</div><div>'+tt('PLAYER.TRACK_NOT_FOUND')+'</div></div>';
+}else{
+// 初始化歌曲信息显示
+document.getElementById('trackTitle').textContent=track.title;
+document.getElementById('trackArtist').textContent=track.artist;
+document.getElementById('trackAlbum').textContent=track.album;
+// 封面：优先显示真实封面，缺失时落回默认封面，避免单纯音符占位
+function setAlbumCover(t){
+try{
+var el=document.getElementById('albumCover');
+if(!el)return;
+var cover=(t&&t.cover)?t.cover:(typeof window.getDefaultCover==='function'?window.getDefaultCover():'');
+if(cover){
+el.innerHTML='<img src="'+cover+'" alt="">';
+var img=el.querySelector('img');
+if(img)img.addEventListener('error',function(){
+var fallback=typeof window.getDefaultCover==='function'?window.getDefaultCover():'';
+if(fallback&&this.src!==fallback){this.src=fallback;return;}
+el.innerHTML='<span>&#127911;</span>';
+});
+}
+else{el.innerHTML='<span>&#127911;</span>';}
+}catch(e){}
+}
+setAlbumCover(track);
+
+// ===== DOM 元素引用 =====
+var audio=document.getElementById('audioPlayer');           // 音频播放器
+var playPauseBtn=document.getElementById('playPauseBtn');   // 播放/暂停按钮
+var prevBtn=document.getElementById('prevBtn');             // 上一首按钮
+var nextBtn=document.getElementById('nextBtn');             // 下一首按钮
+var progressBar=document.getElementById('progressBar');     // 进度条容器
+var progressFill=document.getElementById('progressFill');   // 进度条填充
+var currentTimeEl=document.getElementById('currentTime');   // 当前时间显示
+var totalTimeEl=document.getElementById('totalTime');       // 总时长显示
+var volumeSlider=document.getElementById('volumeSlider');   // 音量滑块
+var currentPlayingTrack=track;                               // 当前播放的歌曲对象
+var modeBtn=document.getElementById('modeBtn');             // 播放模式按钮
+var playMode='order';                                        // 当前播放模式（order列表循环/shuffle随机/repeat单曲循环）
+var playlistToggle=document.getElementById('playlistToggle'); // 播放列表切换按钮
+var playlistPanel=document.getElementById('playlistPanel');   // 播放列表面板
+var playlistItems=document.getElementById('playlistItems');   // 播放列表容器
+var playlistCount=document.getElementById('playlistCount');   // 播放列表数量显示
+
+// ===== XSS 防护：HTML 转义 =====
+function escapeHtml(str){
+if(!str)return'';
+return String(str)
+.replace(/&/g,'&amp;')
+.replace(/</g,'&lt;')
+.replace(/>/g,'&gt;')
+.replace(/"/g,'&quot;')
+.replace(/'/g,'&#039;');
+}
+
+// ===== 渲染播放列表 =====
+// 将所有歌曲渲染到播放列表面板，当前播放的歌曲高亮显示
+function renderPlaylist(){
+if(!trackList||trackList.length===0)return;
+playlistCount.textContent=tt('PLAYER.PLAYLIST_COUNT',{n:trackList.length});
+var html='';
+for(var pi=0;pi<trackList.length;pi++){
+var pt=trackList[pi];
+var isActive=pt.id===currentPlayingTrack.id;  // 是否是当前播放的歌曲
+html+='<div class="playlist-item'+(isActive?' active':'')+'" data-index="'+pi+'">'+
+'<div class="pl-num">'+(isActive?'&#9654;':(pi+1))+'</div>'+  // 当前播放显示▶，否则显示序号
+'<div class="pl-info">'+
+'<div class="pl-title">'+escapeHtml(pt.title)+'</div>'+
+'<div class="pl-artist">'+escapeHtml(pt.artist)+'</div>'+
+'</div>'+
+(isActive?'<div class="pl-tag">'+tt('PLAYER.PLAYING_TAG')+'</div>':'')+  // 当前播放显示"播放中"标签
+'</div>';
+}
+playlistItems.innerHTML=html;
+// 给每首歌添加点击事件：点击切换到该歌曲
+var plItems=playlistItems.querySelectorAll('.playlist-item');
+for(var pj=0;pj<plItems.length;pj++){
+(function(el){
+el.addEventListener('click',function(){
+var idx=parseInt(el.getAttribute('data-index'),10);
+if(!isNaN(idx)&&idx>=0)switchTo(idx);
+});
+})(plItems[pj]);
+}
+}
+
+// ===== 更新播放模式按钮显示 =====
+// 根据当前播放模式更新按钮图标、提示文字和激活状态
+function updateModeBtn(){
+if(playMode==='order'){
+modeBtn.innerHTML='&#128260;';  // 列表循环图标
+modeBtn.title=tt('PLAYER.ORDER');
+modeBtn.classList.remove('active');
+}else if(playMode==='shuffle'){
+modeBtn.innerHTML='&#128256;';  // 随机播放图标
+modeBtn.title=tt('PLAYER.SHUFFLE');
+modeBtn.classList.add('active');
+}else if(playMode==='repeat'){
+modeBtn.innerHTML='&#128258;';  // 单曲循环图标
+modeBtn.title=tt('PLAYER.REPEAT');
+modeBtn.classList.add('active');
+}
+}
+
+// ===== 获取下一首歌曲的索引 =====
+// 根据当前播放模式决定下一首是哪首
+function getNextIndex(){
+if(trackList.length<=1)return currentIndex;  // 只有一首歌，还是它
+if(playMode==='shuffle'){
+// 随机模式：随机选一首，确保不是当前这首
+var next;
+do{next=Math.floor(Math.random()*trackList.length);}while(next===currentIndex);
+return next;
+}
+if(playMode==='repeat')return currentIndex;  // 单曲循环：还是当前这首
+return currentIndex+1;  // 列表循环：下一首（switchTo里会处理循环回到第一首）
+}
+
+try{
+var savedMode=localStorage.getItem('soundwave_play_mode');
+if(savedMode==='order'||savedMode==='shuffle'||savedMode==='repeat'){
+playMode=savedMode;
+}
+}catch(e){}
+updateModeBtn();
+
+modeBtn.addEventListener('click',function(){
+if(playMode==='order')playMode='shuffle';
+else if(playMode==='shuffle')playMode='repeat';
+else playMode='order';
+updateModeBtn();
+try{localStorage.setItem('soundwave_play_mode',playMode);}catch(e){}
+var modeNames={order:tt('PLAYER.ORDER'),shuffle:tt('PLAYER.SHUFFLE'),repeat:tt('PLAYER.REPEAT')};
+try{
+if(window.HackhubSDK&&HackhubSDK.Variables){
+HackhubSDK.Variables.set("sw_play_mode",playMode);
+}
+}catch(e){}
+});
+
+var trackList=(typeof allTracks!=='undefined'&&allTracks&&allTracks.length)?allTracks:(typeof getAllTracks==='function'?getAllTracks():[track]);
+var currentIndex=0;
+for(var i=0;i<trackList.length;i++){if(trackList[i].id===track.id){currentIndex=i;break;}}
+
+// ===== 安全播放：忽略自动播放被浏览器阻止的错误 =====
+function safePlay(){audio.play().catch(function(){});}
+// ===== 通知提示音（Web Audio 合成，无需音频文件）=====
+var notifyCtx=null;var lastNotifyTime=0;
+function playNotifySound(){
+try{
+if(!notifyCtx)notifyCtx=new (window.AudioContext||window.webkitAudioContext)();
+if(notifyCtx.state==='suspended')notifyCtx.resume();
+var now=notifyCtx.currentTime;
+var osc=notifyCtx.createOscillator();
+var gain=notifyCtx.createGain();
+osc.connect(gain);gain.connect(notifyCtx.destination);
+osc.type='sine';
+osc.frequency.setValueAtTime(880,now);
+osc.frequency.setValueAtTime(1175,now+0.09);
+gain.gain.setValueAtTime(0.0001,now);
+gain.gain.exponentialRampToValueAtTime(1.0,now+0.02);
+gain.gain.exponentialRampToValueAtTime(0.0001,now+0.28);
+osc.start(now);osc.stop(now+0.3);
+}catch(e){}
+}
+
+// ===== 记录播放历史（按账号，走后端 Storage）=====
+function addToPlayHistory(track){
+	try{
+	  if(typeof window.addPlayHistory==='function'){
+	    window.addPlayHistory({id:track.id,title:track.title,artist:track.artist});
+	  }
+	}catch(e){}
+	}
+
+function switchTo(index, skipNotify){
+if(trackList.length===0)return;
+// 循环处理：小于0跳到最后一首，大于等于长度跳到第一首
+if(index<0)index=trackList.length-1;
+if(index>=trackList.length)index=0;
+currentIndex=index;
+var t=trackList[currentIndex];
+if(!t.src&&typeof getTrackById==='function'){
+try{t=getTrackById(t.id)||t;}catch(e){}
+}
+currentPlayingTrack=t;
+// 记录到播放历史
+addToPlayHistory(t);
+// 更新歌曲信息显示
+document.getElementById('trackTitle').textContent=t.title;
+document.getElementById('trackArtist').textContent=t.artist;
+document.getElementById('trackAlbum').textContent=t.album;
+setAlbumCover(t);
+// 重置进度条和时间显示
+progressFill.style.width='0%';
+currentTimeEl.textContent='0:00';
+totalTimeEl.textContent='0:00';
+totalTimeEl.style.color='';
+// 切换音频源并播放
+audio.src=t.src;
+audio.load();
+safePlay();
+// 切歌系统通知（终端命令触发的 skipNotify=true 不弹，只保留网页端操作/自动切歌的通知）
+if(!skipNotify){
+var now=Date.now();
+if(now-lastNotifyTime>=1200){
+lastNotifyTime=now;
+try{playNotifySound();}catch(e){}
+try{if(window.HackhubSDK&&HackhubSDK.UI)HackhubSDK.UI.notify(tt('PLAYER.NOTIFY',{idx:currentIndex+1,total:trackList.length,title:t.title,artist:t.artist}));}catch(e){}
+}
+}
+renderPlaylist();  // 重新渲染播放列表，高亮当前歌曲
+}
+
+// 上一首/下一首按钮事件
+prevBtn.addEventListener('click',function(){switchTo(currentIndex-1);});
+nextBtn.addEventListener('click',function(){switchTo(getNextIndex());});
+
+// ===== 音量记忆 =====
+// 从 localStorage 读取保存的音量，默认80%
+function getSavedVolume(){
+try{
+  var v=localStorage.getItem('soundwave_volume');
+  if(v!==null&&v!==undefined){
+    var num=parseInt(v,10);
+    if(!isNaN(num)&&num>=0&&num<=100)return num;
+  }
+}catch(e){}
+return 80;
+}
+// 保存音量到 localStorage
+function saveVolume(vol){
+try{localStorage.setItem('soundwave_volume',String(vol));}catch(e){}
+}
+
+// 初始化音量：读取保存的音量，设置音频和滑块
+var savedVol=getSavedVolume();
+audio.volume=savedVol/100;
+volumeSlider.value=savedVol;
+
+// 时间格式化：秒 -> 分:秒
+function formatTime(sec){if(isNaN(sec))return'0:00';var m=Math.floor(sec/60);var s=Math.floor(sec%60);return m+':'+(s<10?'0':'')+s;}
+
+// ===== 播放/暂停按钮 =====
+playPauseBtn.addEventListener('click',function(){
+if(audio.paused){
+// 暂停状态 -> 播放，播放失败显示错误提示
+audio.play().catch(function(err){totalTimeEl.textContent=tt('PLAYER.PLAY_FAILED');totalTimeEl.style.color='#ff6b6b';});
+}else{audio.pause();}  // 播放状态 -> 暂停
+});
+
+// ===== 音频事件监听（去重保护：防止页面复用时重复绑定导致切歌跳多首/弹多次通知）=====
+if(!window.__swAudioBound){
+window.__swAudioBound=true;
+// 播放事件：更新按钮为暂停图标，同步状态到终端
+audio.addEventListener('play',function(){
+playPauseBtn.innerHTML='&#10074;&#10074;';syncState();
+});
+// 暂停事件：更新按钮为播放图标，同步状态到终端
+audio.addEventListener('pause',function(){playPauseBtn.innerHTML='&#9654;';syncState();});
+// 播放进度更新事件：更新进度条和当前时间，同步状态到终端
+audio.addEventListener('timeupdate',function(){
+var pct=(audio.currentTime/audio.duration)*100;
+progressFill.style.width=pct+'%';
+currentTimeEl.textContent=formatTime(audio.currentTime);
+syncState();
+});
+// 元数据加载完成事件：获取总时长，缓存到localStorage供首页显示，同步状态到终端
+audio.addEventListener('loadedmetadata',function(){
+  totalTimeEl.textContent=formatTime(audio.duration);
+  syncState();
+  // 缓存时长到 localStorage，供首页显示
+  try{
+    var durations={};
+    var saved=localStorage.getItem('soundwave_track_durations');
+    if(saved)durations=JSON.parse(saved);
+    durations[currentPlayingTrack.id]=audio.duration;
+    localStorage.setItem('soundwave_track_durations',JSON.stringify(durations));
+  }catch(e){}
+});
+// 播放结束事件：根据播放模式决定是重播还是切下一首
+audio.addEventListener('ended',function(){
+if(playMode==='repeat'){
+// 单曲循环：回到开头重新播放
+audio.currentTime=0;
+safePlay();
+}else{
+// 列表循环/随机：切换到下一首
+switchTo(getNextIndex());
+}
+});
+// 音频加载错误事件：显示错误提示
+audio.addEventListener('error',function(){totalTimeEl.textContent=tt('PLAYER.AUDIO_FAILED');totalTimeEl.style.color='#ff6b6b';});
+}
+
+// ===== 进度条点击跳转 =====
+progressBar.addEventListener('click',function(e){
+if(!audio.duration)return;
+var rect=progressBar.getBoundingClientRect();
+var pct=(e.clientX-rect.left)/rect.width;  // 计算点击位置的百分比
+audio.currentTime=pct*audio.duration;  // 跳转到对应时间
+});
+
+// ===== 音量滑块调整 =====
+volumeSlider.addEventListener('input',function(e){
+var vol=Math.round(e.target.value);
+audio.volume=vol/100;
+saveVolume(vol);  // 保存音量到本地
+syncState();      // 同步状态到终端
+});
+
+// ===== 键盘快捷键（去重保护：防止页面复用时按一次键触发多次）=====
+if(!window.__swKbBound){
+window.__swKbBound=true;
+document.addEventListener('keydown',function(e){
+  // 输入框聚焦时不触发快捷键，避免影响输入
+  var tag=document.activeElement.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA')return;
+
+  switch(e.key){
+    case ' ':
+      e.preventDefault();  // 阻止空格滚动页面
+      playPauseBtn.click();  // 播放/暂停
+      break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      prevBtn.click();  // 上一首
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      nextBtn.click();  // 下一首
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      var volUp=Math.min(100,Math.round(audio.volume*100)+10);  // 音量+10%，最大100
+      audio.volume=volUp/100;
+      volumeSlider.value=volUp;
+      saveVolume(volUp);
+      syncState();
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      var volDown=Math.max(0,Math.round(audio.volume*100)-10);  // 音量-10%，最小0
+      audio.volume=volDown/100;
+      volumeSlider.value=volDown;
+      saveVolume(volDown);
+      syncState();
+      break;
+  }
+});
+}
+
+// 初始化音频源并加载
+audio.src=track.src;
+audio.load();
+
+// ===== 播放列表切换按钮 =====
+playlistToggle.addEventListener('click',function(){
+playlistPanel.classList.toggle('open');  // 切换展开/收起
+if(playlistPanel.classList.contains('open')){
+renderPlaylist();  // 展开时重新渲染列表
+}
+});
+renderPlaylist();  // 初始化渲染播放列表
+
+// ===== 同步播放状态到游戏 Variables =====
+// 终端播放器通过读取这些 Variables 来显示当前播放状态
+function syncState(){
+try{
+if(window.HackhubSDK&&HackhubSDK.Variables){
+HackhubSDK.Variables.set("sw_current_track",currentPlayingTrack);  // 当前播放的歌曲
+HackhubSDK.Variables.set("sw_is_playing",!audio.paused);           // 是否正在播放
+HackhubSDK.Variables.set("sw_volume",Math.round(audio.volume*100)); // 音量
+HackhubSDK.Variables.set("sw_current_time",audio.currentTime||0);   // 当前播放时间
+HackhubSDK.Variables.set("sw_duration",audio.duration||0);          // 总时长
+}
+}catch(e){}
+}
+
+// ===== 监听终端命令事件 =====
+// 终端播放器通过 Events.emit("SoundWave.Command", {...}) 发送命令
+// 播放页监听这些事件，执行对应的播放控制操作
+try{
+if(window.HackhubSDK&&HackhubSDK.Events){
+// 先用 on 返回的 unsubscribe 移除旧监听器（比 off 更可靠），防止页面复用时重复响应
+if(window.__swCmdUnsub){try{window.__swCmdUnsub();}catch(e){}}
+window.__swCmdUnsub=HackhubSDK.Events.on("SoundWave.Command",function(data){
+if(!data||!data.action)return;
+// 去重兜底：100ms 内相同 action 忽略，即使有重复监听器也只执行一次
+var _now=Date.now();
+if(data.action===window.__swLastAction&&_now-window.__swLastActionTime<100)return;
+window.__swLastAction=data.action;
+window.__swLastActionTime=_now;
+switch(data.action){
+case"play":
+// 播放指定歌曲，或播放当前歌曲
+if(data.trackId&&data.trackId!==(currentPlayingTrack&&currentPlayingTrack.id)){
+for(var i=0;i<trackList.length;i++){if(trackList[i].id===data.trackId){switchTo(i,true);break;}}
+}else{safePlay();}
+break;
+case"pause":audio.pause();break;  // 暂停
+case"toggle":if(audio.paused)safePlay();else audio.pause();break;  // 播放/暂停切换
+case"next":switchTo(getNextIndex(),true);break;  // 下一首（终端触发，不弹通知）
+case"prev":switchTo(currentIndex-1,true);break;   // 上一首（终端触发，不弹通知）
+case"volume":if(typeof data.volume==='number'){audio.volume=data.volume/100;volumeSlider.value=data.volume;syncState();}break;  // 设置音量
+case"set_play_mode":
+if(data.mode==='order'||data.mode==='shuffle'||data.mode==='repeat'){
+playMode=data.mode;
+updateModeBtn();
+try{localStorage.setItem('soundwave_play_mode',playMode);}catch(e){}
+try{if(window.HackhubSDK&&HackhubSDK.Variables)HackhubSDK.Variables.set("sw_play_mode",playMode);}catch(e){}
+}
+break;
+case"open":try{if(window.HackhubSDK&&HackhubSDK.Browser)HackhubSDK.Browser.navigate("/");}catch(e){}break;  // 打开首页
+}
+});
+}
+}catch(e){}
+
+// 初始化同步一次状态到终端
+syncState();
+}
+
+// ===== 返回按钮：返回歌单首页 =====
+try{
+document.getElementById('backBtn').addEventListener('click',function(){
+try{if(window.HackhubSDK&&HackhubSDK.Browser)HackhubSDK.Browser.navigate('/');}catch(e){}
+});
+}catch(e){}
+</script>
+</body>
+</html>
